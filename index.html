@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="scripts/jquery-1.7.1.js"></script>
+		<script src="scripts/kinetic-v3.6.4.js"></script>
+		<script src="scripts/speech.js"></script>
+		<script src="scripts/drawShapes.js"></script>
+		<script src="scripts/sounds.js"></script>
+		<script src="scripts/game.js"></script>
+		<!-- script src="scripts/big.js"></script -->
+		<style>
+			body {
+				padding: 2px;
+			}
+			canvas {
+				padding: 0px;
+				border: black solid 2px;
+			}
+			#mainStage {
+				padding: 5px;
+				margin: 0px;
+				position: absolute;
+				top: 30px;
+				left: 30px;
+				right: 30px;
+				bottom: 30px;
+				border: black 1px solid;
+			}
+			#controlInput {
+				width: 0px;
+				position: absolute;
+				right: 50%;
+				top: 50%;
+			}
+		</style>
+	</head>
+	<body>
+		<form>
+			<input id="controlInput" type="text" />
+		</form>
+		<div id="mainStage" ></div>
+		<button id="restart">
+			RESTART
+		</button>
+	</body>
+</html>

@@ -1,0 +1,17 @@
+Speech bubbles:
+    Implement as a function tied to every invader, input text and duration
+
+Eyeballs:
+    Implement as a draw function that gets called in the invador's draw function.
+
+Graphics:
+    Implement generator taking in a seed parameter.
+        implement child shapes that move cyclicly with the invader march.
+    Gun flash
+    Projectile trail.
+
+Audio:
+    Load and play a music track
+    Gun firing noize
+    projectile trail sound
+    Invader flock loop.
