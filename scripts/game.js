@@ -422,7 +422,7 @@ pause = function() {
 //========================================================================================================
 $(document).ready(function(){
 
-                      initAudio();
+                      //initAudio();
 
 
                       stageWidth = $("#mainStage").width()-2;
