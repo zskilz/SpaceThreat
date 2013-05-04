@@ -1,13 +1,8 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="scripts/jquery-1.7.1.js"></script>
-		<script src="scripts/kinetic-v3.6.4.js"></script>
-		<script src="scripts/speech.js"></script>
-		<script src="scripts/drawShapes.js"></script>
-		<script src="scripts/sounds.js"></script>
-		<script src="scripts/game.js"></script>
-		<!-- script src="scripts/big.js"></script -->
+		<script data-main="scripts/main.js" src="scripts/require.js"></script>
+		
 		<style>
 			body {
 				padding: 2px;
@@ -31,16 +26,11 @@
 				position: absolute;
 				right: 50%;
 				top: 50%;
-			}
+			}
+
 		</style>
 	</head>
 	<body>
-		<form>
-			<input id="controlInput" type="text" />
-		</form>
 		<div id="mainStage" ></div>
-		<button id="restart">
-			RESTART
-		</button>
 	</body>
 </html>
