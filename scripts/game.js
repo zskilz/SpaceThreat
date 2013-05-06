@@ -22,7 +22,7 @@ Kinetic.Layer.prototype.remove = function(shape){
 
 
 
-define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function(Kinetic,sounds, speech, drawShapes, globals) {
+define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function(Kinetic, sounds, speech, drawShapes, globals) {
 
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -69,7 +69,14 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
         if (tank.pos.x < (tank.size + limitTweak)) tank.pos.x = tank.size + limitTweak;
         if (tank.pos.x > globals.fixedStageDims.width - tank.size - limitTweak) tank.pos.x = globals.fixedStageDims.width - tank.size - limitTweak;
 
-        tank.setPosition(tank.pos.x * globalScale, tank.pos.y * globalScale);
+        tank.setPosition(tank.pos.x, tank.pos.y);
+        var wheels = tank.wheels;
+        for (var wheel = 0; wheel < tank.numWheels; wheel++) {
+
+            wheels[wheel].setRotation(tank.pos.x / tank.wheelRadius / 2.0);
+
+
+        }
 
     }
 
@@ -99,9 +106,9 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
 
         if ((flockTarget.y + numInvaderRows * invaderSpacing) < (fixedStageDims.height - invaderSpacing * 0.7)) //groupHug condition is that invaders reach the bottom
         {
-            //flockTarget should sweep out the inveder's entry pattern
+            //flockTarget should sweep out the invaders' entry pattern
             var powTerm = Math.pow(Math.sin(flockTime * 3.0), 2);
-            //the judder "march"
+            //the jitter "march"
             flockTarget.x += powTerm * invaderSpacing * timeDiff * flockTarget.direction;
 
             //when they reach the end of the screen the target goes one row down and they reverse direction.
@@ -124,36 +131,43 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
 
         var shapesLayer = globals.stage.get("#Shapes")[0];
         var projectile = shapesLayer.get("#projectile")[0];
-        var invader, invaders = globals.invaders;
+        var invader, invadersGroup = globals.invaders,
+            invaders = invadersGroup.getChildren();
 
+
+        // moving dynamics
+
+        var pos = invadersGroup.getPosition();
+        invadersGroup.setPosition(pos.x + (flockTarget.x - pos.x) * 0.1, pos.y + (flockTarget.y - pos.y) * 0.06);
         for (var i = 0; i < numInvaders; i++) {
             invader = invaders[i];
 
             if (globals.groupHug) {
-                // hugging dynamics
-                invader.pos.x += ((tank.pos.x + hugPositions[i].x * globalScale) - invader.pos.x) * 0.06;
-                invader.pos.y += ((tank.pos.y + hugPositions[i].y * globalScale) - invader.pos.y) * 0.05;
+                // hugging dynamics 
+                
+                invader.pos.x += ((tank.pos.x + hugPositions[i].x) - invader.pos.x - pos.x) * 0.06;
+                invader.pos.y += ((tank.pos.y + hugPositions[i].y) - invader.pos.y - pos.y) * 0.05;
             }
-            else {
-                // moving dynamics
+            else{
+                //centering
                 var gridPos = {
                     "x": i % numInvaderColumns,
                     "y": Math.floor(i / numInvaderColumns)
                 };
-                invader.pos.x += ((flockTarget.x + gridPos.x * invaderSpacing) - invader.pos.x) * 0.1;
-                invader.pos.y += ((flockTarget.y + gridPos.y * invaderSpacing) - invader.pos.y) * 0.06;
+                invader.pos.x += (gridPos.x*invaderSpacing - invader.pos.x) * 0.06;
+                invader.pos.y += (gridPos.y*invaderSpacing - invader.pos.y) * 0.05;
             }
 
             if (projectile) {
                 //make a normal vector, and calculate the distance while we're at it.
                 var u = {
-                    "x": (invader.pos.x - projectile.pos.x),
-                    "y": (invader.pos.y - projectile.pos.y)
+                    "x": (invader.pos.x - projectile.pos.x + pos.x),
+                    "y": (invader.pos.y - projectile.pos.y + pos.y)
                 };
                 var dist = Math.sqrt(Math.pow(u.x, 2) + Math.pow(u.y, 2));
                 u.x = u.x / dist;
                 u.y = u.y / dist;
-                var spacing = (invaderSpacing * globalScale);
+                var spacing = (invaderSpacing);
                 if (dist < spacing) {
                     var fact = Math.pow((spacing - dist) / (spacing), 2) * 30;
                     invader.pos.x += u.x * fact * 3;
@@ -174,14 +188,14 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
                     invader.lookAtTarget = tank;
                 }
             }
-            invader.setPosition(invader.pos.x * globalScale, invader.pos.y * globalScale);
+            invader.setPosition(invader.pos.x, invader.pos.y);
         }
 
         //general speech.
         if (timeToSpeak < 0) {
             if (globals.groupHug) {
                 for (var j = 0; j < numInvaders; j += 3) {
-                    globals.invaders[j].speak("GROUP HUG!", 2);
+                    invaders[j].speak("GROUP HUG!", 2);
                 }
                 timeToSpeak = speakingInterval * 100;
             }
@@ -224,7 +238,7 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
 
         if (projectile) {
             projectile.pos.y -= projectileSpeed * timeDiff;
-            projectile.setPosition(projectile.pos.x * globalScale, projectile.pos.y * globalScale);
+            projectile.setPosition(projectile.pos.x, projectile.pos.y);
             if (projectile.pos.y < -200) {
                 projectile.remove();
             }
@@ -251,7 +265,9 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
             if (!globals.groupHug && keyMap[cntrlMap["shoot"]]) {
 
                 tank.attacking = true;
-                projectile = new Kinetic.Shape({id:'projectile'});
+                projectile = new Kinetic.Shape({
+                    id: 'projectile'
+                });
                 projectile.setDrawFunc(drawShapes.projectileDraw);
                 projectile.fillStyle = "#FAC";
                 projectile.strokeStyle = "#700";
@@ -260,7 +276,7 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
                     "y": tank.pos.y - tank.size
                 };
 
-                projectile.setPosition(projectile.pos.x * globalScale, projectile.pos.y * globalScale);
+                projectile.setPosition(projectile.pos.x, projectile.pos.y);
 
                 shapesLayer.add(projectile);
 
@@ -274,7 +290,7 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
                 flash.divs = 6;
                 flash.fashScale = 10;
                 flash.fillStyle = "rgba(255,255,190,0.2)";
-                flash.setPosition(tank.pos.x, (tank.pos.y - tank.size) * globalScale);
+                flash.setPosition(tank.pos.x, (tank.pos.y - tank.size));
                 flash.flashTime = flashTime;
 
                 shapesLayer.add(flash);
@@ -326,18 +342,20 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
     }
 
         function processSpeechBubbles(timeDiff) {
+            var invaders = globals.invaders.getChildren();
+            var flockPos = globals.invaders.getPosition();
             for (var i = 0; i < chatter.length; i++) {
                 var bubble = chatter[i];
-                bubble.setPosition(globals.invaders[bubble.invaderNum].pos.x, globals.invaders[bubble.invaderNum].pos.y);
+                var invader = invaders[bubble.invaderNum];
+                var pos = invader.getPosition();
+
+                bubble.setPosition(pos.x + flockPos.x, pos.y + flockPos.y);
             }
 
         }
 
-        function animate(lastTime) {
+        function animate(timeDiff) {
             // update
-            var date = new Date();
-            var time = date.getTime();
-            var timeDiff = (time - lastTime) / 1000.0;
 
             if (!globals.gamePause) {
 
@@ -346,18 +364,8 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
                 processProjectile(timeDiff);
 
             }
-            // draw
-            globals.stage.get('#Shapes')[0].draw();
-            //speech bubbles
-            processSpeechBubbles(timeDiff);
-            
-            globals.stage.get('#Speech')[0].draw();
-            
 
-            // request new frame
-            requestAnimFrame(function() {
-                animate(time);
-            });
+
         }
 
     var globalScale = 1.0;
@@ -381,12 +389,12 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
                 stage.setSize(canvasWidth, globals.stageHeight / aspect * stageAspect);
 
             }
-
             stage.setScale(globalScale);
         }
     }
 
     $(window).resize(resizeStage);
+
     var initGame = function() {
         speech.dialoguePos = 0;
         speech.insultPos = 0;
@@ -401,21 +409,10 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
             "x": globals.fixedStageDims.width / 2,
             "y": globals.fixedStageDims.height - 40
         };
-        tank.setPosition(tank.pos.x * globalScale, tank.pos.y * globalScale);
+        tank.setPosition(tank.pos.x, tank.pos.y);
         timeToSpeak = speakingInterval / 3.0;
         converseSwitch = 0;
-        //init invader positions
-        for (var i = 0; i < globals.numInvaders; i++) {
-            var gridPos = {
-                "x": i % globals.numInvaderColumns,
-                "y": Math.floor(i / globals.numInvaderColumns)
-            };
-            globals.invaders[i].pos = {
-                "x": gridPos.x * globals.invaderSpacing + globals.flockTarget.x,
-                "y": gridPos.y * globals.invaderSpacing + globals.flockTarget.y
-            };
-            globals.invaders[i].setPosition(globals.invaders[i].pos.x, globals.invaders[i].pos.y);
-        }
+
     }
     var unpause = function() {
         if (sounds.audioCtx) //fix sound stutters.
@@ -427,6 +424,89 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
     }
 
 
+    var initInvaders = function(lookAtTarget) {
+        //init invaders
+        var invaders = new Kinetic.Group();
+        for (var i = 0; i < globals.numInvaders; i++) {
+            var invader = new Kinetic.Shape();
+
+
+            invader.setDrawFunc(drawShapes.invaderDraw);
+            invader.speak = speakInvader;
+            invader.radius = 30;
+            invader.invaderNum = i;
+            invader.fillStyle = "rgba(125,255,125,0.5)";
+            invader.strokeStyle = "black";
+            invader.speaking = false;
+            invader.lookAtTarget = lookAtTarget;
+
+            //init invader positions
+            var gridPos = {
+                "x": i % globals.numInvaderColumns,
+                "y": Math.floor(i / globals.numInvaderColumns)
+            }
+            invader.pos = {
+                'x': gridPos.x * globals.invaderSpacing,
+                'y': gridPos.y * globals.invaderSpacing
+            };
+            invader.setPosition(invader.pos.x, invader.pos.y);
+
+            invaders.add(invader);
+
+        }
+
+        return invaders;
+    }
+
+    var initTank = function() {
+        //init the player tank
+
+        var tank = new Kinetic.Group();
+        tank.attacking = false;
+
+        var chasis = new Kinetic.Shape();
+        chasis.setDrawFunc(drawShapes.tankDraw);
+        tank.size = chasis.size = 30;
+        chasis.fillStyle = "#B55";
+        chasis.strokeStyle = "black";
+        tank.add(chasis);
+
+
+        //wheel shapes
+        var gearShape = new Kinetic.Shape({
+            drawFunc: drawShapes.gear,
+            fillRadialGradientStartPoint: 0,
+            fillRadialGradientStartRadius: 0,
+            fillRadialGradientEndPoint: 0,
+            fillRadialGradientEndRadius: 0,
+            fillRadialGradientColorStops: [0, "#FFA", 0.4, "#FFA", 0.45, "#000", 0.5, "#555", 1, "#111"],
+            strokeStyle: chasis.strokeStyle
+        });
+
+        gearShape.innerRadius = chasis.size / 4.1;
+        gearShape.spokeHeight = gearShape.innerRadius / 5;
+        tank.wheelRadius = gearShape.innerRadius + gearShape.spokeHeight;
+
+        gearShape.setFillRadialGradientEndRadius(tank.wheelRadius);
+
+        //the wheels
+        tank.numWheels = 4;
+        var wheels = tank.wheels = [];
+
+        for (var wheel = 0; wheel < tank.numWheels; wheel++) {
+            wheels[wheel] = gearShape.clone();
+            wheels[wheel].innerRadius = gearShape.innerRadius;
+            wheels[wheel].spokeHeight = gearShape.spokeHeight;
+            wheels[wheel].epsilon = 0.09;
+            wheels[wheel].divs = 7;
+            wheels[wheel].setPosition(-chasis.size + wheel * ((chasis.size) * 2 / (tank.numWheels - 1)), chasis.size - gearShape.innerRadius / 2);
+            tank.add(wheels[wheel]);
+
+        }
+
+        return tank;
+    }
+
     //========================================================================================================
     // Starting point.
     //========================================================================================================
@@ -434,7 +514,7 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
         //add the initial components..
         var mainStage = $('#' + _mainStage);
         mainStage.append('<form><input id="controlInput" type="text" /></form>');
-        mainStage.append('<button id="restart">RESTART</button>');
+        mainStage.after('<button id="restart">RESTART</button>');
         //initAudio();
         globals.mainStage = mainStage;
 
@@ -446,50 +526,37 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
             height: globals.stageHeight
         });
 
+
         resizeStage();
-
         //first set up the background
-        var bgLayer = new Kinetic.Layer({id:"BG"});
-        var bg = new Kinetic.Shape();
-        bg.setDrawFunc(drawShapes.drawBackDrop);
+        var bgLayer = new Kinetic.Layer({
+            id: "BackDrop"
+        });
+        var bg = new Kinetic.Shape({
+            drawFunc: drawShapes.drawBackDrop
+        });
         bgLayer.add(bg);
-
-        var shapesLayer = new Kinetic.Layer({id:"Shapes"});
-        var speechLayer = new Kinetic.Layer({id:"Speech"});
-        //init the player tank
-        globals.tank = new Kinetic.Shape();
-        var tank = globals.tank;
-        tank.setDrawFunc(drawShapes.tankDraw);
-        tank.attacking = false;
-        tank.size = 30;
-        tank.fillStyle = "#B55";
-        tank.strokeStyle = "black";
-        shapesLayer.add(tank);
-
-
-        //init invaders
-        for (var i = 0; i < globals.numInvaders; i++) {
-            var invader = new Kinetic.Shape();
-            invader.setDrawFunc(drawShapes.invaderDraw);
-            invader.speak = speakInvader;
-            invader.radius = 30;
-            invader.invaderNum = i;
-            invader.fillStyle = "rgba(125,255,125,0.5)";
-            invader.strokeStyle = "black";
-            invader.speaking = false;
-            invader.lookAtTarget = tank;
-
-
-            globals.invaders.push(invader);
-
-            shapesLayer.add(invader);
-        }
-
-        initGame();
-        
         globals.stage.add(bgLayer);
+
+        var shapesLayer = new Kinetic.Layer({
+            id: "Shapes"
+        });
+        var speechLayer = new Kinetic.Layer({
+            id: "Speech"
+        });
+
         globals.stage.add(shapesLayer);
         globals.stage.add(speechLayer);
+
+        globals.tank = initTank();
+        shapesLayer.add(globals.tank);
+
+
+        globals.invaders = initInvaders(globals.tank);
+        shapesLayer.add(globals.invaders);
+        initGame();
+
+
 
 
         var date = new Date();
@@ -527,11 +594,33 @@ define('game',['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function
 
         $("#restart").click(initGame);
 
-        animate(time, globals.stage);
+
+
+        var anim = new Kinetic.Animation(function(frame) {
+            var //time = frame.time,
+            timeDiff = frame.timeDiff / 1000.0; //,
+            //frameRate = frame.frameRate;
+            animate(timeDiff);
+            // update stuff
+        }, shapesLayer);
+
+
+        var anim2 = new Kinetic.Animation(function(frame) {
+            var //time = frame.time,
+            timeDiff = frame.timeDiff / 1000.0; //,
+            //frameRate = frame.frameRate;
+            processSpeechBubbles(timeDiff);
+            // update stuff
+        }, speechLayer);
+
+        anim.start();
+        anim2.start();
 
         //scheduleAudio();
 
     };
+
+
 
     return {
         init: init

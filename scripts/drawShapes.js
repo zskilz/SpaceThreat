@@ -3,11 +3,10 @@ define(['globals','speech'], function(globals,speech) {
 
         eyeTemplate: undefined,
         tentacleTemplate: undefined,
-        gearTemplate: undefined,
         cannonFlashTemplate: undefined,
 
-        cannonFlashDraw: function() {
-            var context = this.getContext();
+        cannonFlashDraw: function(canvas) {
+            var context = canvas.getContext();
 
             var flashTime = this.flashTime;
             var date = new Date();
@@ -25,8 +24,6 @@ define(['globals','speech'], function(globals,speech) {
             var cannonFlashTemplate;
 
 
-            var globalScaleRecip = 1.0 / globals.globalScale;
-
             if (typeof(drawShapes.cannonFlashTemplate) === "undefined") {
                 drawShapes.cannonFlashTemplate = new Kinetic.Shape(drawShapes.flash);
 
@@ -37,19 +34,17 @@ define(['globals','speech'], function(globals,speech) {
             cannonFlashTemplate.innerRadius = this.innerRadius;
             cannonFlashTemplate.outerRadius = this.outerRadius;
             cannonFlashTemplate.divs = this.divs;
-            cannonFlashTemplate.setScale(globalScaleRecip); //undo the effect of the global scaling
 
             for (var i = 0; i < 5; i++) {
 
                 cannonFlashTemplate.setPosition((Math.random() - 0.5) * this.innerRadius, (Math.random() - 0.5) * this.innerRadius);
                 cannonFlashTemplate.setRotation(Math.random() * Math.PI / 4);
-                cannonFlashTemplate.setScale(globalScaleRecip * Math.random() * this.fashScale * t * t, globalScaleRecip * Math.random() * this.fashScale * t * t);
                 //cannonFlashTemplate.draw();
             }
 
         },
-        flash: function() {
-            var context = this.getContext(),
+        flash: function(canvas) {
+            var context = canvas.getContext(),
                 innerRadius = this.innerRadius,
                 outerRadius = this.outerRadius,
                 divs = this.divs;
@@ -86,8 +81,8 @@ define(['globals','speech'], function(globals,speech) {
 
         },
 
-        speechBubbleDraw: function() {
-            var context = this.getContext();
+        speechBubbleDraw: function(canvas) {
+            var context = canvas.getContext();
 
             var l = 20;
             var w = this.w;
@@ -118,16 +113,11 @@ define(['globals','speech'], function(globals,speech) {
             context.fillStyle = "black";
             context.fillText(text, - w / 2 + 4, h / 2 + l + 8);
         },
-        tankDraw: function() {
-            var context = this.getContext();
+        tankDraw: function(canvas) {
+            var context = canvas.getContext();
 
             var size = this.size;
-            var numWheels = 4;
-
-            var globalScaleRecip = 1.0 / globals.globalScale;
-
-
-
+            
 
             //barrel
             context.beginPath();
@@ -181,54 +171,9 @@ define(['globals','speech'], function(globals,speech) {
             context.stroke();
 
 
-
-
-
-
-            //the wheels
-
-            var gearTemplate = 0;
-            if (typeof(drawShapes.gearTemplate) === "undefined") {
-                drawShapes.gearTemplate = new Kinetic.Shape(drawShapes.gear);
-                gearTemplate = drawShapes.gearTemplate;
-
-                gearTemplate.innerRadius = this.size / 4.1;
-                gearTemplate.spokeHeight = gearTemplate.innerRadius / 5;
-                gearTemplate.epsilon = 0.09;
-                gearTemplate.divs = 7;
-
-
-                var grd = context.createRadialGradient(0, 0, 0, 0, 0, gearTemplate.innerRadius);
-                grd.addColorStop(0, "#FFA");
-                grd.addColorStop(0.4, "#FFA");
-                grd.addColorStop(0.45, "#000");
-                grd.addColorStop(0.5, "#555");
-                grd.addColorStop(1, "#111");
-                gearTemplate.fillStyle = grd;
-                gearTemplate.strokeStyle = this.strokeStyle;
-
-            }
-            else {
-                gearTemplate = drawShapes.gearTemplate;
-                gearTemplate.setScale(globalScaleRecip); //undo the effect of the global scaling
-            }
-
-            var wheelRadius = gearTemplate.innerRadius + gearTemplate.spokeHeight;
-
-            gearTemplate.setRotation(this.pos.x / (wheelRadius) / 2);
-
-            for (var wheel = 0; wheel < numWheels; wheel++) {
-
-                gearTemplate.setPosition(-this.size + wheel * ((this.size) * 2 / (numWheels - 1)), this.size - gearTemplate.innerRadius / 2);
-                //gearTemplate.draw();
-            }
-
-
-
         },
-        invaderDraw: function() {
-            var context = this.getContext();
-            var globalScaleRecip = 1.0 / globals.globalScale;
+        invaderDraw: function(canvas) {
+            var context = canvas.getContext();
             var innerRadius = globals.invaderSpacing / 4;
 
             var grd = context.createRadialGradient(innerRadius / 2, - innerRadius * 0.8, 0, 0, 0, innerRadius);
@@ -250,7 +195,6 @@ define(['globals','speech'], function(globals,speech) {
             }
             else {
                 tentacleTemplate = drawShapes.tentacleTemplate;
-                tentacleTemplate.setScale(globalScaleRecip); //undo the effect of the global scaling
             }
 
             var date = new Date();
@@ -262,10 +206,8 @@ define(['globals','speech'], function(globals,speech) {
 
                 tentacleTemplate.setPosition(innerRadius * Math.cos(arcSweep * nT), innerRadius * Math.sin(arcSweep * nT));
                 tentacleTemplate.setRotation(arcSweep * nT);
-                //tentacleTemplate.draw();
             }
 
-            tentacleTemplate.setScale(-globalScaleRecip, globalScaleRecip);
 
             for (nT = 0; nT < numTentaclesPerSide; nT++) {
                 tentacleTemplate.setPosition(-innerRadius * Math.cos(arcSweep * nT), innerRadius * Math.sin(arcSweep * nT));
@@ -277,7 +219,7 @@ define(['globals','speech'], function(globals,speech) {
 
 
             //eyes
-            var eyeSpacing = globals.invaderSpacing / 5 + 2;
+           /* var eyeSpacing = globals.invaderSpacing / 5 + 2;
 
             var eyeTemplate = 0;
             if (typeof(drawShapes.eyeTemplate) === "undefined") {
@@ -288,21 +230,27 @@ define(['globals','speech'], function(globals,speech) {
             }
             else {
                 eyeTemplate = drawShapes.eyeTemplate;
-                eyeTemplate.setScale(globalScaleRecip); //undo the effect of the global scaling
+            }
+            
+            if(typeof(this.eyes)==='undefined'){
+                this.eyes = [eyeTemplate.clone(),eyeTemplate.clone()];
+                this.add(this.eyes[0]);
+                this.add(this.eyes[1]);
             }
 
-            eyeTemplate.target = this.lookAtTarget;
-            eyeTemplate.invaderPos = {
+            this.eyes[0].target = this.lookAtTarget;
+            this.eyes[0].invaderPos = {
                 "x": this.x,
                 "y": this.y
             };
-            eyeTemplate.setPosition(-eyeSpacing, 0);
+            this.eyes[0].setPosition(-eyeSpacing, 0);
             //eyeTemplate.draw();
-            eyeTemplate.setPosition(eyeSpacing, 0);
-            //eyeTemplate.draw();
+            //eyeTemplate.setPosition(eyeSpacing, 0);
+            //eyeTemplate.draw();*/
+            
         },
-        projectileDraw: function() {
-            var context = this.getContext();
+        projectileDraw: function(canvas) {
+            var context = canvas.getContext();
 
             var radius = 5;
 
@@ -324,9 +272,9 @@ define(['globals','speech'], function(globals,speech) {
             context.strokeStyle = strokeStyle;
             context.stroke();
         },
-        gear: function() {
+        gear: function(canvas) {
 
-            var context = this.getContext(),
+            var context = canvas.getContext(),
                 innerRadius = this.innerRadius,
                 spokeHeight = this.spokeHeight,
                 epsilon = this.epsilon,
@@ -347,15 +295,11 @@ define(['globals','speech'], function(globals,speech) {
             }
 
             context.closePath();
-            context.fillStyle = this.fillStyle;
-            context.fill();
-            context.lineWidth = this.lineStyle;
-            context.strokeStyle = this.strokeStyle;
-            context.stroke();
+            canvas.fillStroke(this);
         },
 
-        eyeBall: function() {
-            var context = this.getContext(),
+        eyeBall: function(canvas) {
+            var context = canvas.getContext(),
                 target = this.target,
                 radius = this.radius,
                 pupilRatio = this.pupilRatio,
@@ -381,8 +325,8 @@ define(['globals','speech'], function(globals,speech) {
 
 
         },
-        tentacle: function() {
-            var context = this.getContext();
+        tentacle: function(canvas) {
+            var context = canvas.getContext();
             var speed = 7;
             var t = (this.time / 1000 * speed) % (2 * Math.PI);
             var l = this.l;
@@ -399,14 +343,15 @@ define(['globals','speech'], function(globals,speech) {
         },
 
 
-        drawBackDrop: function() {
-            var context = this.getContext();
+        drawBackDrop: function(canvas) {
+            var context = canvas.getContext();
             var fixedStageDims = globals.fixedStageDims;
+            var _W = globals.fixedStageDims.width, _H = globals.fixedStageDims.height;
 
             context.beginPath();
-            context.rect(0, 0, fixedStageDims.width, fixedStageDims.height);
+            context.rect(0, 0, _W, fixedStageDims.height);
 
-            var grd = context.createLinearGradient(0, fixedStageDims.height, 0, 0);
+            var grd = context.createLinearGradient(0, _H, 0, 0);
             grd.addColorStop(0, "#FFF");
             grd.addColorStop(0.3, "#BEE");
             grd.addColorStop(1, "#006");
@@ -426,11 +371,11 @@ define(['globals','speech'], function(globals,speech) {
             context.lineWidth = 1;
             context.strokeStyle = "#646464";
             for (var i = 0; i < numBuildings; i++) {
-                pos = Math.random() * fixedStageDims.width;
+                pos = Math.random() * _W;
                 w = Math.random() * (maxWidth - minWidth) + minWidth;
                 h = Math.random() * (maxHeight - minHeight) + minHeight;
                 context.beginPath();
-                context.rect(pos - w / 2, fixedStageDims.height - h, w, h);
+                context.rect(pos - w / 2, _H - h, w, h);
                 context.fillStyle = "rgb(" + (125 + Math.floor(Math.random() * 15)) + "," + (125 + Math.floor(Math.random() * 15)) + "," + (125 + Math.floor(Math.random() * 45)) + ")";
                 context.fill();
                 context.stroke();
@@ -440,14 +385,14 @@ define(['globals','speech'], function(globals,speech) {
             context.fillStyle = "#444";
             var trackWidth = 5;
             context.beginPath();
-            context.moveTo(0, fixedStageDims.height);
-            context.lineTo(0, fixedStageDims.height - trackWidth * 3);
-            context.lineTo(trackWidth, fixedStageDims.height - trackWidth * 3);
-            context.lineTo(trackWidth, fixedStageDims.height - trackWidth);
-            context.lineTo(fixedStageDims.width - trackWidth, fixedStageDims.height - trackWidth);
-            context.lineTo(fixedStageDims.width - trackWidth, fixedStageDims.height - trackWidth * 3);
-            context.lineTo(fixedStageDims.width, fixedStageDims.height - trackWidth * 3);
-            context.lineTo(fixedStageDims.width, fixedStageDims.height);
+            context.moveTo(0, _H);
+            context.lineTo(0, _H - trackWidth * 3);
+            context.lineTo(trackWidth, _H - trackWidth * 3);
+            context.lineTo(trackWidth, _H - trackWidth);
+            context.lineTo(_W - trackWidth, _H - trackWidth);
+            context.lineTo(_W - trackWidth, _H - trackWidth * 3);
+            context.lineTo(_W, _H - trackWidth * 3);
+            context.lineTo(_W, _H);
             context.closePath();
             context.fill();
             context.stroke();
