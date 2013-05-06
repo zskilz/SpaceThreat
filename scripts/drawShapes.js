@@ -1,16 +1,13 @@
-define(['globals','speech'], function(globals,speech) {
+define(['globals', 'speech'], function(globals, speech) {
     var drawShapes = {
 
-        eyeTemplate: undefined,
-        tentacleTemplate: undefined,
         cannonFlashTemplate: undefined,
 
         cannonFlashDraw: function(canvas) {
             var context = canvas.getContext();
 
             var flashTime = this.flashTime;
-            var date = new Date();
-            var time = date.getTime() / 1000.0;
+            var time = globals.flockTime;
             var t = 1.0;
             if (typeof(this.timeToDie) === "undefined") {
                 this.timeToDie = time + this.flashTime;
@@ -117,7 +114,7 @@ define(['globals','speech'], function(globals,speech) {
             var context = canvas.getContext();
 
             var size = this.size;
-            
+
 
             //barrel
             context.beginPath();
@@ -172,83 +169,7 @@ define(['globals','speech'], function(globals,speech) {
 
 
         },
-        invaderDraw: function(canvas) {
-            var context = canvas.getContext();
-            var innerRadius = globals.invaderSpacing / 4;
 
-            var grd = context.createRadialGradient(innerRadius / 2, - innerRadius * 0.8, 0, 0, 0, innerRadius);
-            grd.addColorStop(0, "#FFF");
-            grd.addColorStop(1, this.fillStyle);
-
-
-            drawShapes.circle(context, innerRadius + 2, grd, this.strokeStyle, 2);
-
-
-            //tentacles
-            var tentacleTemplate = 0;
-            if (typeof(drawShapes.tentacleTemplate) === "undefined") {
-                drawShapes.tentacleTemplate = new Kinetic.Shape(drawShapes.tentacle);
-                tentacleTemplate = drawShapes.tentacleTemplate;
-                tentacleTemplate.fillStyle = this.fillStyle;
-                tentacleTemplate.strokeStyle = this.strokeStyle;
-                tentacleTemplate.l = globals.invaderSpacing / 4 - 2;
-            }
-            else {
-                tentacleTemplate = drawShapes.tentacleTemplate;
-            }
-
-            var date = new Date();
-            tentacleTemplate.time = date.getTime();
-            var numTentaclesPerSide = 3,
-                nT, arcSweep = (Math.PI / 2.0) / numTentaclesPerSide;
-
-            for (nT = 0; nT < numTentaclesPerSide; nT++) {
-
-                tentacleTemplate.setPosition(innerRadius * Math.cos(arcSweep * nT), innerRadius * Math.sin(arcSweep * nT));
-                tentacleTemplate.setRotation(arcSweep * nT);
-            }
-
-
-            for (nT = 0; nT < numTentaclesPerSide; nT++) {
-                tentacleTemplate.setPosition(-innerRadius * Math.cos(arcSweep * nT), innerRadius * Math.sin(arcSweep * nT));
-                tentacleTemplate.setRotation(-arcSweep * nT);
-                //tentacleTemplate.draw();
-
-            }
-
-
-
-            //eyes
-           /* var eyeSpacing = globals.invaderSpacing / 5 + 2;
-
-            var eyeTemplate = 0;
-            if (typeof(drawShapes.eyeTemplate) === "undefined") {
-                drawShapes.eyeTemplate = new Kinetic.Shape(drawShapes.eyeBall);
-                eyeTemplate = drawShapes.eyeTemplate;
-                eyeTemplate.radius = eyeSpacing * 0.8;
-                eyeTemplate.pupilRatio = 1.4;
-            }
-            else {
-                eyeTemplate = drawShapes.eyeTemplate;
-            }
-            
-            if(typeof(this.eyes)==='undefined'){
-                this.eyes = [eyeTemplate.clone(),eyeTemplate.clone()];
-                this.add(this.eyes[0]);
-                this.add(this.eyes[1]);
-            }
-
-            this.eyes[0].target = this.lookAtTarget;
-            this.eyes[0].invaderPos = {
-                "x": this.x,
-                "y": this.y
-            };
-            this.eyes[0].setPosition(-eyeSpacing, 0);
-            //eyeTemplate.draw();
-            //eyeTemplate.setPosition(eyeSpacing, 0);
-            //eyeTemplate.draw();*/
-            
-        },
         projectileDraw: function(canvas) {
             var context = canvas.getContext();
 
@@ -300,17 +221,19 @@ define(['globals','speech'], function(globals,speech) {
 
         eyeBall: function(canvas) {
             var context = canvas.getContext(),
-                target = this.target,
+                target = this.getParent().lookAtTarget.getPosition(),
                 radius = this.radius,
-                pupilRatio = this.pupilRatio,
+                pos = this.getParent().getPosition(),
+                thisPos = this.getPosition(),
+                pupilRatio = globals.pupilRatio,
                 eye = new Object(),
                 limit = radius - radius / pupilRatio;
 
 
 
             var dir = {
-                "x": target.x - (this.invaderPos.x + this.x),
-                "y": target.y - (this.invaderPos.y + this.y)
+                "x": target.x - (pos.x + thisPos.x + globals.flockTarget.x),
+                "y": target.y - (pos.y + thisPos.y + globals.flockTarget.y)
             };
 
             var dist = Math.sqrt(Math.pow(dir.x, 2) + Math.pow(dir.y, 2));
@@ -328,25 +251,24 @@ define(['globals','speech'], function(globals,speech) {
         tentacle: function(canvas) {
             var context = canvas.getContext();
             var speed = 7;
-            var t = (this.time / 1000 * speed) % (2 * Math.PI);
+            var t = ((globals.flockTime * speed) % (2 * Math.PI));
             var l = this.l;
             context.beginPath();
             context.moveTo(0, 10);
             context.bezierCurveTo(l / 3, Math.sin(t) * 5, 7 * l / 8, Math.sin(t + Math.PI / 8) * 10, l, Math.sin(t + Math.PI / 7) * 5);
             context.bezierCurveTo(7 * l / 8, Math.sin(t + Math.PI / 8) * 10, l / 3, Math.sin(t) * 5, 0, - 10);
             context.lineWidth = 3;
-            context.strokeStyle = this.strokeStyle;
-            context.stroke();
-            context.closePath();
-            context.fillStyle = this.fillStyle;
+            //context.closePath();
             context.fill();
+            canvas.fillStroke(this);
         },
 
 
         drawBackDrop: function(canvas) {
             var context = canvas.getContext();
             var fixedStageDims = globals.fixedStageDims;
-            var _W = globals.fixedStageDims.width, _H = globals.fixedStageDims.height;
+            var _W = globals.fixedStageDims.width,
+                _H = globals.fixedStageDims.height;
 
             context.beginPath();
             context.rect(0, 0, _W, fixedStageDims.height);

@@ -1,5 +1,6 @@
 define(function() {
     var globals = {
+        flockTime: 0,
         mainStage: null,
         stage: null,
         stageWidth: null,
@@ -16,7 +17,7 @@ define(function() {
             "width": 800,
             "height": 600
         }, //all dynamics calculations rely on a constant frame of reference. (This enables me to scale the stage, yet retain the same gameplay)
-
+        pupilRatio: 1.6
     }
     globals.numInvaders = globals.numInvaderRows * globals.numInvaderColumns;
     globals.flockTarget = {

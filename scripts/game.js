@@ -70,6 +70,8 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         if (tank.pos.x > globals.fixedStageDims.width - tank.size - limitTweak) tank.pos.x = globals.fixedStageDims.width - tank.size - limitTweak;
 
         tank.setPosition(tank.pos.x, tank.pos.y);
+
+        //rotate the wheels..
         var wheels = tank.wheels;
         for (var wheel = 0; wheel < tank.numWheels; wheel++) {
 
@@ -80,7 +82,7 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
 
     }
 
-    var flockTime = 0;
+   
     //create a random array for hug positions.
     var hugPositions = [];
     for (var i = 0; i < globals.numInvaders; i++) {
@@ -95,7 +97,7 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
     var converseSwitch = 0;
 
     function processInvaders(timeDiff) {
-        flockTime += timeDiff;
+        globals.flockTime += timeDiff;
         var flockTarget = globals.flockTarget;
         var numInvaderRows = globals.numInvaderRows;
         var numInvaderColumns = globals.numInvaderColumns;
@@ -107,7 +109,7 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         if ((flockTarget.y + numInvaderRows * invaderSpacing) < (fixedStageDims.height - invaderSpacing * 0.7)) //groupHug condition is that invaders reach the bottom
         {
             //flockTarget should sweep out the invaders' entry pattern
-            var powTerm = Math.pow(Math.sin(flockTime * 3.0), 2);
+            var powTerm = Math.pow(Math.sin(globals.flockTime * 3.0), 2);
             //the jitter "march"
             flockTarget.x += powTerm * invaderSpacing * timeDiff * flockTarget.direction;
 
@@ -144,18 +146,18 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
 
             if (globals.groupHug) {
                 // hugging dynamics 
-                
+
                 invader.pos.x += ((tank.pos.x + hugPositions[i].x) - invader.pos.x - pos.x) * 0.06;
                 invader.pos.y += ((tank.pos.y + hugPositions[i].y) - invader.pos.y - pos.y) * 0.05;
             }
-            else{
+            else {
                 //centering
                 var gridPos = {
                     "x": i % numInvaderColumns,
                     "y": Math.floor(i / numInvaderColumns)
                 };
-                invader.pos.x += (gridPos.x*invaderSpacing - invader.pos.x) * 0.06;
-                invader.pos.y += (gridPos.y*invaderSpacing - invader.pos.y) * 0.05;
+                invader.pos.x += (gridPos.x * invaderSpacing - invader.pos.x) * 0.06;
+                invader.pos.y += (gridPos.y * invaderSpacing - invader.pos.y) * 0.05;
             }
 
             if (projectile) {
@@ -423,33 +425,78 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         globals.gamePause = true;
     }
 
+    var initInvader = function(i, lookAtTarget) {
+        var innerRadius = globals.invaderSpacing / 4;
+        var invader = new Kinetic.Group();
+        invader.speak = speakInvader;
+        invader.radius = 30;
+        invader.invaderNum = i;
+        invader.speaking = false;
+        invader.lookAtTarget = lookAtTarget;
+
+        var invaderBody = new Kinetic.Circle({
+            radius: innerRadius,
+            stroke: "rgba(0,0,0,0.5)",
+            fillRadialGradientStartPoint: [innerRadius/4,-innerRadius/4],
+            fillRadialGradientStartRadius: 0,
+            fillRadialGradientEndPoint: 0,
+            fillRadialGradientEndRadius: innerRadius,
+            fillRadialGradientColorStops: [0, "#FFF", 1, "rgba(125,255,125,0.5)"]
+        });
+        invader.add(invaderBody);
+
+        var numTentaclesPerSide = 3,
+            nT, arcSweep = (Math.PI / 2.0) / numTentaclesPerSide;
+
+        for (nT = 0; nT < numTentaclesPerSide; nT++) {
+            var tentacle = invaderBody.clone();
+            tentacle.setDrawFunc(drawShapes.tentacle);
+            tentacle.setName('tentacle');
+
+            tentacle.l = globals.invaderSpacing / 4 - 2;
+            tentacle.setPosition(innerRadius * Math.cos(arcSweep * nT), innerRadius * Math.sin(arcSweep * nT));
+            tentacle.setRotation(arcSweep * nT);
+            invader.add(tentacle);
+        }
+
+        for (nT = 0; nT < numTentaclesPerSide; nT++) {
+            var tentacle = invaderBody.clone();
+            tentacle.setDrawFunc(drawShapes.tentacle);
+            tentacle.setName('tentacle');
+
+            tentacle.l = -globals.invaderSpacing / 4 - 2;
+            tentacle.setPosition(-innerRadius * Math.cos(arcSweep * nT), innerRadius * Math.sin(arcSweep * nT));
+            tentacle.setRotation(-arcSweep * nT);
+            invader.add(tentacle);
+        }
+        
+        //eyeballs
+        var eyeL = new Kinetic.Shape({drawFunc:drawShapes.eyeBall,x:-10});
+        eyeL.radius = 8+Math.round((Math.random()+0.5)*2.0);
+        var eyeR = new Kinetic.Shape({drawFunc:drawShapes.eyeBall,x:10});
+        eyeR.radius = 8+Math.round((Math.random()+0.5)*2.0);
+        
+        invader.add(eyeL);
+        invader.add(eyeR);
+
+        //init invader positions
+        var gridPos = {
+            "x": i % globals.numInvaderColumns,
+            "y": Math.floor(i / globals.numInvaderColumns)
+        }
+        invader.pos = {
+            'x': gridPos.x * globals.invaderSpacing,
+            'y': gridPos.y * globals.invaderSpacing
+        };
+        invader.setPosition(invader.pos.x, invader.pos.y);
+        return invader;
+    }
 
     var initInvaders = function(lookAtTarget) {
         //init invaders
         var invaders = new Kinetic.Group();
         for (var i = 0; i < globals.numInvaders; i++) {
-            var invader = new Kinetic.Shape();
-
-
-            invader.setDrawFunc(drawShapes.invaderDraw);
-            invader.speak = speakInvader;
-            invader.radius = 30;
-            invader.invaderNum = i;
-            invader.fillStyle = "rgba(125,255,125,0.5)";
-            invader.strokeStyle = "black";
-            invader.speaking = false;
-            invader.lookAtTarget = lookAtTarget;
-
-            //init invader positions
-            var gridPos = {
-                "x": i % globals.numInvaderColumns,
-                "y": Math.floor(i / globals.numInvaderColumns)
-            }
-            invader.pos = {
-                'x': gridPos.x * globals.invaderSpacing,
-                'y': gridPos.y * globals.invaderSpacing
-            };
-            invader.setPosition(invader.pos.x, invader.pos.y);
+            var invader = initInvader(i, lookAtTarget);
 
             invaders.add(invader);
 
