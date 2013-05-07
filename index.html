@@ -19,26 +19,13 @@
             });
         </script>
         <style>
-           /* body {
-                padding: 2px;
-            }
-            canvas {
-                padding: 0px;
-                border: black solid 2px;
-            }*/
             #mainStage {
-                padding: 5px;
-                margin: 0px;
-                position: absolute;
-                top: 30px;
-                left: 30px;
-                right: 30px;
-                bottom: 30px;
-                border: black 1px solid;
+                width:620px;
+                height:510px;
             }
             #controlInput {
                 width: 0px;
-                position: absolute;
+                position: relative;
                 right: 50%;
                 top: 50%;
             }
@@ -60,7 +47,14 @@
         </header>
         <div class="container">
             <section id="main_content">
-                <p>Aliens appear to be posing a threat! Do something!</p>
+                <p>
+                    <b>Left-arrow</b>and
+                    <b>Right-arrow</b>keys to move tank.
+                    <br/>
+                    <b>Up-arrow</b>key to shoot.
+                    <br/>Click on the
+                    <b>"Restart"</b> button to reset game state.
+                    <br/>Click outside game to pause, click on game to unpause.</p>
                 <div id="mainStage"></div>
             </section>
         </div>
