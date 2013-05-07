@@ -11,7 +11,9 @@ Still bringing project up-to-date with Almond workflow... Will then us gh-pages 
 ## Credits
 
 Used the folowing libs in this project:
+
 <a href="http://kineticjs.com/">KineticJS</a>
+
 <a href="http://jquery.com/">jQuery</a>
 
 ## License

@@ -22,7 +22,7 @@ Kinetic.Layer.prototype.remove = function(shape){
 
 
 
-define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], function(Kinetic, sounds, speech, drawShapes, globals) {
+define('game', ['sounds', 'speech', 'drawShapes', 'globals'], function(sounds, speech, drawShapes, globals) {
 
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
