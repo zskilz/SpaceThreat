@@ -560,7 +560,7 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         var mainStage = $('#' + _mainStage);
         mainStage.append('<form><input id="controlInput" type="text" /></form>');
         mainStage.after('<button id="restart">RESTART</button>');
-        //initAudio();
+        sounds.initAudio();
         globals.mainStage = mainStage;
 
         globals.stageWidth = mainStage.width() - 2;
@@ -656,7 +656,7 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         anim.start();
         anim2.start();
 
-        //scheduleAudio();
+        sounds.scheduleAudio();
 
     };
 

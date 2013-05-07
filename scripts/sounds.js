@@ -145,7 +145,7 @@ define(['globals'],function(globals) {
                     }
 
                 }
-                setTimeout("scheduleAudio()", 20);
+                setTimeout(_export.scheduleAudio, 100);
             }
 
         },
@@ -167,9 +167,9 @@ define(['globals'],function(globals) {
                 var boomSoundBuffer = _export.generateAudioBuffer.boomSound();
                 cannonBoomBuffer = audioCtx.createBuffer(1, boomSoundBuffer.length, sampleRate);
                 cannonBoomBuffer.getChannelData(0).set(boomSoundBuffer);
-                //var invaderSweepBuffer = generateAudioBuffer.invaderSweep();
-                //invaderDroneBuffer = audioCtx.createBuffer(1, invaderSweepBuffer.length , sampleRate);
-                //invaderDroneBuffer.getChannelData(0).set(invaderSweepBuffer);
+                var invaderSweepBuffer = _export.generateAudioBuffer.invaderSweep();
+                invaderDroneBuffer = audioCtx.createBuffer(1, invaderSweepBuffer.length , sampleRate);
+                invaderDroneBuffer.getChannelData(0).set(invaderSweepBuffer);
 
 
                 mainVol = audioCtx.createGainNode();
