@@ -1,3 +1,4 @@
+// Author: Petrus J Pretorius - See README.md for lisence details.
 define(['globals', 'speech'], function(globals, speech) {
     var drawShapes = {
 

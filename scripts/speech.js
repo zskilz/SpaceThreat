@@ -1,3 +1,4 @@
+// Author: Petrus J Pretorius - See README.md for lisence details.
 define({
     
     textfont: "18pt Calibri",

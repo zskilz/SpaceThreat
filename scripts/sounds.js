@@ -1,9 +1,10 @@
 //____________________________________________
 // Audio stuff
+//
+// Author: Petrus J Pretorius - See README.md for lisence details.
 //____________________________________________
 define(['globals'],function(globals) {
-    var audioCtx = 0,
-        audioSupported = false,
+    var audioSupported = false,
         compressor = 0,
         mainVol = 0,
         cannonBoomBuffer = 0,
@@ -19,6 +20,7 @@ define(['globals'],function(globals) {
         grainWindow;
 
     var _export = {
+        audioCtx : 0,
         generateAudioBuffer: {
 
 
@@ -86,11 +88,11 @@ define(['globals'],function(globals) {
 
             var speed = 1.0;
 
-            var source = audioCtx.createBufferSource();
+            var source = _export.audioCtx.createBufferSource();
             source.buffer = invaderDroneBuffer;
 
 
-            var panner = audioCtx.createPanner();
+            var panner = _export.audioCtx.createPanner();
             panner.panningModel = webkitAudioPannerNode.EQUALPOWER;
             panner.refDistance = globals.fixedStageDims.width / 8;
             panner.maxDistance = globals.fixedStageDims.width / 2;
@@ -104,8 +106,8 @@ define(['globals'],function(globals) {
 
 
             var grainWindowNode;
-            grainWindowNode = audioCtx.createGainNode();
-            var invaderVolNode = audioCtx.createGainNode();
+            grainWindowNode = _export.audioCtx.createGainNode();
+            var invaderVolNode = _export.audioCtx.createGainNode();
             invaderVolNode.gain.value = invaderVol;
             source.connect(grainWindowNode);
             grainWindowNode.connect(invaderVolNode);
@@ -138,7 +140,7 @@ define(['globals'],function(globals) {
         scheduleAudio: function() {
             if (audioSupported) {
                 if (!globals.gamePause) {
-                    var currentTime = audioCtx.currentTime;
+                    var currentTime = _export.audioCtx.currentTime;
 
                     while (realTime < currentTime + 0.100) {
                         _export.scheduleInvaderGrain();
@@ -160,7 +162,7 @@ define(['globals'],function(globals) {
             }
 
 
-            audioCtx = new AudioContext();
+            var audioCtx = _export.audioCtx = new AudioContext();
 
             if (audioCtx) {
 
@@ -196,11 +198,11 @@ define(['globals'],function(globals) {
         playCannonSound: function() {
             if (audioSupported) {
                 // Create a couple of sources
-                var cannonSource = audioCtx.createBufferSource();
+                var cannonSource = _export.audioCtx.createBufferSource();
                 cannonSource.buffer = cannonBoomBuffer;
 
                 // Spatialization
-                var panner = audioCtx.createPanner();
+                var panner = _export.audioCtx.createPanner();
 
 
                 panner.panningModel = webkitAudioPannerNode.EQUALPOWER;
@@ -208,7 +210,7 @@ define(['globals'],function(globals) {
                 panner.maxDistance = 400;
                 panner.setPosition((globals.tank.pos.x - globals.fixedStageDims.width / 2), 0, 100);
 
-                var lpFilter = audioCtx.createBiquadFilter();
+                var lpFilter = _export.audioCtx.createBiquadFilter();
 
                 lpFilter.type = 2; // Band-pass filter.
                 lpFilter.frequency.value = 80;
@@ -217,7 +219,7 @@ define(['globals'],function(globals) {
                 cannonSource.connect(lpFilter);
 
 
-                var boostVol = audioCtx.createGainNode();
+                var boostVol = _export.audioCtx.createGainNode();
                 boostVol.gain.value = 5.0;
 
                 lpFilter.connect(panner);
