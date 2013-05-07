@@ -31,7 +31,6 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         window.setTimeout(callback, 1000 / 60);
     };
 
-
     //the keys
     var keyMap = {};
     var gameCntrls = ["left", "right", "shoot"];
@@ -46,12 +45,9 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         }
     }
 
-
     var limitTweak = 15;
 
-
-
-    function processTank(timeDiff) {
+    var processTank = function(timeDiff) {
         var moveDelta = 0;
         var speed = globals.groupHug ? 30 : 100;
         //px/s
@@ -82,7 +78,6 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
 
     }
 
-   
     //create a random array for hug positions.
     var hugPositions = [];
     for (var i = 0; i < globals.numInvaders; i++) {
@@ -96,7 +91,7 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
     var timeToSpeak = speakingInterval / 3.0;
     var converseSwitch = 0;
 
-    function processInvaders(timeDiff) {
+    var processInvaders = function(timeDiff) {
         globals.flockTime += timeDiff;
         var flockTarget = globals.flockTarget;
         var numInvaderRows = globals.numInvaderRows;
@@ -233,7 +228,7 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
 
     var projectileSpeed = 200;
 
-    function processProjectile(timeDiff) {
+    var processProjectile = function(timeDiff) {
         var shapesLayer = globals.stage.get("#Shapes")[0];
         var projectile = shapesLayer.get("#projectile")[0];
         var tank = globals.tank;
@@ -247,12 +242,7 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
             else {
                 //make trails
                 var trailTime = 1.9;
-                var trail = new Kinetic.Shape(drawShapes.cannonFlashDraw);
-                trail.innerRadius = 5;
-                trail.outerRadius = 8;
-                trail.divs = 5;
-                trail.fashScale = 2;
-                trail.fillStyle = "rgba(255,225,200,0.1)";
+                var trail = drawShapes.makeCannonFlash(5, 8, 5, "rgba(255,225,200,0.1)", "rgba(255,225,200,0.1)");
                 trail.setPosition(projectile.pos.x, projectile.pos.y);
                 trail.flashTime = trailTime;
 
@@ -268,11 +258,11 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
 
                 tank.attacking = true;
                 projectile = new Kinetic.Shape({
-                    id: 'projectile'
+                    id: 'projectile',
+                    fill: '##FAC',
+                    stroke: '#700',
+                    drawFunc: drawShapes.projectileDraw
                 });
-                projectile.setDrawFunc(drawShapes.projectileDraw);
-                projectile.fillStyle = "#FAC";
-                projectile.strokeStyle = "#700";
                 projectile.pos = {
                     "x": tank.pos.x,
                     "y": tank.pos.y - tank.size
@@ -285,13 +275,8 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
                 sounds.playCannonSound();
 
                 var flashTime = 0.3;
-                var flash = new Kinetic.Shape()
-                flash.setDrawFunc(drawShapes.cannonFlashDraw);
-                flash.innerRadius = 5;
-                flash.outerRadius = 30;
-                flash.divs = 6;
-                flash.fashScale = 10;
-                flash.fillStyle = "rgba(255,255,190,0.2)";
+                var flash = drawShapes.makeCannonFlash(5, 30, 6, "rgba(255,255,0,0.3)", "rgba(255,255,255,0.1)");
+
                 flash.setPosition(tank.pos.x, (tank.pos.y - tank.size));
                 flash.flashTime = flashTime;
 
@@ -302,9 +287,16 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
                 }, flashTime * 1000);
             }
         }
+        //finally, "jitter the flashes"
+        var flashShapes = globals.stage.get(".flashShape");
+        $.each(flashShapes, function(i, cannonFlashShape) {
+            var parent = cannonFlashShape.getParent();
+            cannonFlashShape.setPosition((Math.random() - 0.5) * parent.innerRadius, (Math.random() - 0.5) * parent.innerRadius);
+            cannonFlashShape.setRotation(Math.random() * Math.PI / 4);
+        });
+
     }
 
-    var flash;
     var chatter = [];
     var textDims = function(text, font) {
         var testEl = $("<div>").css("font", font).css("display", "inline").html(text);
@@ -343,20 +335,20 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         }
     }
 
-        function processSpeechBubbles(timeDiff) {
-            var invaders = globals.invaders.getChildren();
-            var flockPos = globals.invaders.getPosition();
-            for (var i = 0; i < chatter.length; i++) {
-                var bubble = chatter[i];
-                var invader = invaders[bubble.invaderNum];
-                var pos = invader.getPosition();
+    var processSpeechBubbles = function(timeDiff) {
+        var invaders = globals.invaders.getChildren();
+        var flockPos = globals.invaders.getPosition();
+        for (var i = 0; i < chatter.length; i++) {
+            var bubble = chatter[i];
+            var invader = invaders[bubble.invaderNum];
+            var pos = invader.getPosition();
 
-                bubble.setPosition(pos.x + flockPos.x, pos.y + flockPos.y);
-            }
-
+            bubble.setPosition(pos.x + flockPos.x, pos.y + flockPos.y);
         }
 
-        function animate(timeDiff) {
+    }
+
+    var animate = function(timeDiff) {
             // update
 
             if (!globals.gamePause) {
@@ -437,7 +429,7 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         var invaderBody = new Kinetic.Circle({
             radius: innerRadius,
             stroke: "rgba(0,0,0,0.5)",
-            fillRadialGradientStartPoint: [innerRadius/4,-innerRadius/4],
+            fillRadialGradientStartPoint: [innerRadius / 4, - innerRadius / 4],
             fillRadialGradientStartRadius: 0,
             fillRadialGradientEndPoint: 0,
             fillRadialGradientEndRadius: innerRadius,
@@ -469,13 +461,19 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
             tentacle.setRotation(-arcSweep * nT);
             invader.add(tentacle);
         }
-        
+
         //eyeballs
-        var eyeL = new Kinetic.Shape({drawFunc:drawShapes.eyeBall,x:-10});
-        eyeL.radius = 8+Math.round((Math.random()+0.5)*2.0);
-        var eyeR = new Kinetic.Shape({drawFunc:drawShapes.eyeBall,x:10});
-        eyeR.radius = 8+Math.round((Math.random()+0.5)*2.0);
-        
+        var eyeL = new Kinetic.Shape({
+            drawFunc: drawShapes.eyeBall,
+            x: -10
+        });
+        eyeL.radius = 8 + Math.round((Math.random() + 0.5) * 2.0);
+        var eyeR = new Kinetic.Shape({
+            drawFunc: drawShapes.eyeBall,
+            x: 10
+        });
+        eyeR.radius = 8 + Math.round((Math.random() + 0.5) * 2.0);
+
         invader.add(eyeL);
         invader.add(eyeR);
 
@@ -573,7 +571,6 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
             height: globals.stageHeight
         });
 
-
         resizeStage();
         //first set up the background
         var bgLayer = new Kinetic.Layer({
@@ -598,13 +595,9 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         globals.tank = initTank();
         shapesLayer.add(globals.tank);
 
-
         globals.invaders = initInvaders(globals.tank);
         shapesLayer.add(globals.invaders);
         initGame();
-
-
-
 
         var date = new Date();
         var time = date.getTime();
@@ -666,8 +659,6 @@ define('game', ['kinetic', 'sounds', 'speech', 'drawShapes', 'globals'], functio
         //scheduleAudio();
 
     };
-
-
 
     return {
         init: init

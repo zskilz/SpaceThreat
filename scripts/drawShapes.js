@@ -1,51 +1,47 @@
 define(['globals', 'speech'], function(globals, speech) {
     var drawShapes = {
 
-        cannonFlashTemplate: undefined,
+        makeCannonFlash: function( innerRadius, outerRadius, divs, fill, stroke) {
+            var cannonFlash = new Kinetic.Group();
+            cannonFlash.innerRadius = innerRadius;
+            cannonFlash.outerRadius = outerRadius;
+            cannonFlash.divs = divs;
+            
+            
+            
+            for (var i = 0; i < 5; i++) {
+                var cannonFlashShape = new Kinetic.Shape({
+                    drawFunc:drawShapes.flash,
+                    name : 'flashShape',
+                    fill: fill,
+                    stroke: stroke
+                });
+                cannonFlashShape.setPosition((Math.random() - 0.5) * innerRadius, (Math.random() - 0.5) * innerRadius);
+                cannonFlashShape.setRotation(Math.random() * Math.PI / 4);             
+                cannonFlash.add(cannonFlashShape);
+            }
 
-        cannonFlashDraw: function(canvas) {
-            var context = canvas.getContext();
+            return cannonFlash;
+        },       
+        flash: function(canvas) {
+            var context = canvas.getContext(),
+            parent = this.getParent(),
+                innerRadius = parent.innerRadius,
+                outerRadius = parent.outerRadius,
+                divs = parent.divs,
+                time = globals.flockTime,
+                t = 1;
 
-            var flashTime = this.flashTime;
-            var time = globals.flockTime;
-            var t = 1.0;
-            if (typeof(this.timeToDie) === "undefined") {
-                this.timeToDie = time + this.flashTime;
+            if (typeof(parent.timeToDie) === "undefined") {
+                parent.timeToDie = time + parent.flashTime;
 
             }
             else {
-                t = (this.timeToDie - time) / this.flashTime;
-
+                t = (parent.timeToDie - time) / parent.flashTime;
+                
             }
-
-            var cannonFlashTemplate;
-
-
-            if (typeof(drawShapes.cannonFlashTemplate) === "undefined") {
-                drawShapes.cannonFlashTemplate = new Kinetic.Shape(drawShapes.flash);
-
-            }
-
-            cannonFlashTemplate = drawShapes.cannonFlashTemplate;
-            cannonFlashTemplate.fillStyle = this.fillStyle;
-            cannonFlashTemplate.innerRadius = this.innerRadius;
-            cannonFlashTemplate.outerRadius = this.outerRadius;
-            cannonFlashTemplate.divs = this.divs;
-
-            for (var i = 0; i < 5; i++) {
-
-                cannonFlashTemplate.setPosition((Math.random() - 0.5) * this.innerRadius, (Math.random() - 0.5) * this.innerRadius);
-                cannonFlashTemplate.setRotation(Math.random() * Math.PI / 4);
-                //cannonFlashTemplate.draw();
-            }
-
-        },
-        flash: function(canvas) {
-            var context = canvas.getContext(),
-                innerRadius = this.innerRadius,
-                outerRadius = this.outerRadius,
-                divs = this.divs;
-
+            
+            this.setOpacity(t*t*t);
 
             context.beginPath();
 
@@ -73,8 +69,7 @@ define(['globals', 'speech'], function(globals, speech) {
             }
 
             context.closePath();
-            context.fillStyle = this.fillStyle;
-            context.fill();
+            canvas.fillStroke(this);
 
         },
 
@@ -254,12 +249,10 @@ define(['globals', 'speech'], function(globals, speech) {
             var t = ((globals.flockTime * speed) % (2 * Math.PI));
             var l = this.l;
             context.beginPath();
-            context.moveTo(0, 10);
+            context.moveTo(0, 8);
             context.bezierCurveTo(l / 3, Math.sin(t) * 5, 7 * l / 8, Math.sin(t + Math.PI / 8) * 10, l, Math.sin(t + Math.PI / 7) * 5);
             context.bezierCurveTo(7 * l / 8, Math.sin(t + Math.PI / 8) * 10, l / 3, Math.sin(t) * 5, 0, - 10);
             context.lineWidth = 3;
-            //context.closePath();
-            context.fill();
             canvas.fillStroke(this);
         },
 
@@ -318,7 +311,6 @@ define(['globals', 'speech'], function(globals, speech) {
             context.closePath();
             context.fill();
             context.stroke();
-
 
         }
 
