@@ -4,17 +4,18 @@ Aliens appear to be posing a threat! Do something!
 
 Port to new KineticJS version of old personal challenge code done in 2 weeks. Not quite up to 7 day chalenges out there, but it was a learning experience.
 
-Work in progress...
+Work in progress... always.
 
-Still bringing project up-to-date with Almond workflow... Will then us gh-pages to publish minified source.
+Demo here: http://zskilz.github.io/SpaceThreat/
 
 ## Credits
 
 Used the folowing libs in this project:
 
-<a href="http://kineticjs.com/">KineticJS</a>
-
-<a href="http://jquery.com/">jQuery</a>
+<a href="http://kineticjs.com/">KineticJS</a>, 
+<a href="http://jquery.com/">jQuery</a>, 
+<a href="http://requirejs.org/">RequireJS</a>, 
+<a href="https://github.com/jrburke/almond">Almond</a>, 
 
 ## License
 
