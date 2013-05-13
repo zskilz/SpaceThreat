@@ -450,8 +450,7 @@ define('sounds',['globals'],function(globals) {
         invaderDroneBuffer = 0,
         invaderVol = 0.06,
         channels = 2,
-        sampleRate = 44100,
-        realTime = 0.0,
+        sampleRate = 44100,       
         grainTime = 0.0,
         kGrainSize = 0.10,
         grainDuration = kGrainSize,
@@ -460,6 +459,7 @@ define('sounds',['globals'],function(globals) {
 
     var _export = {
         audioCtx : 0,
+        realTime : 0.0,
         generateAudioBuffer: {
 
 
@@ -557,20 +557,20 @@ define('sounds',['globals'],function(globals) {
             var randomGrainOffset = (Math.random() - 0.5) * 2.0 * (invaderDroneBuffer.duration);
 
             // Schedule sound grain
-            source.noteGrainOn(realTime, grainTime + randomGrainOffset, grainDuration);
+            source.noteGrainOn(_export.realTime, grainTime + randomGrainOffset, grainDuration);
 
             // Schedule the grain window.
             // This applies a time-varying gain change for smooth fade-in / fade-out.
 
             var windowDuration = grainDuration;
             grainWindowNode.gain.value = 0.0; // make default value 0
-            grainWindowNode.gain.setValueCurveAtTime(grainWindow, realTime, windowDuration);
+            grainWindowNode.gain.setValueCurveAtTime(grainWindow, _export.realTime, windowDuration);
 
 
             var lastGrainTime = grainTime;
 
             // Update time params
-            realTime += grainSpacing;
+            _export.realTime += grainSpacing;
             grainTime += speed * grainSpacing;
             if (grainTime > invaderDroneBuffer.duration) grainTime = 0.0;
             if (grainTime < 0.0) grainTime += invaderDroneBuffer.duration; // backwards wrap-around
@@ -581,7 +581,7 @@ define('sounds',['globals'],function(globals) {
                 if (!globals.gamePause) {
                     var currentTime = _export.audioCtx.currentTime;
 
-                    while (realTime < currentTime + 0.100) {
+                    while (_export.realTime < currentTime + 0.100) {
                         _export.scheduleInvaderGrain();
                     }
 
