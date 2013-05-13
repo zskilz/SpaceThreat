@@ -867,14 +867,7 @@ define('drawShapes',['globals', 'speech'], function(globals, speech) {
 
         },
 
-        projectileDraw: function(canvas) {
-            var context = canvas.getContext();
-
-            var radius = 5;
-
-            drawShapes.circle(context, radius, this.fillStyle, this.strokeStyle, 1);
-
-        },
+        
         circle: function(context, r, fillStyle, strokeStyle, lineWidth, offSetPos) {
             if (typeof(lineWidth) === "undefined") lineWidth = 1;
             if (typeof(offSetPos) === "undefined") offSetPos = {
@@ -941,8 +934,6 @@ define('drawShapes',['globals', 'speech'], function(globals, speech) {
                 "x": eye.x,
                 "y": eye.y
             });
-
-
 
         },
         tentacle: function(canvas) {
@@ -1278,11 +1269,11 @@ define('game', ['sounds', 'speech', 'drawShapes', 'globals'], function(sounds, s
             if (!globals.groupHug && keyMap[cntrlMap["shoot"]]) {
 
                 tank.attacking = true;
-                projectile = new Kinetic.Shape({
+                projectile = new Kinetic.Circle({
                     id: 'projectile',
-                    fill: '##FAC',
-                    stroke: '#700',
-                    drawFunc: drawShapes.projectileDraw
+                    radius: 5,
+                    fill: '#FAC',
+                    stroke: '#700'
                 });
                 projectile.pos = {
                     "x": tank.pos.x,
@@ -1370,18 +1361,18 @@ define('game', ['sounds', 'speech', 'drawShapes', 'globals'], function(sounds, s
     }
 
     var animate = function(timeDiff) {
-            // update
+        // update
 
-            if (!globals.gamePause) {
+        if (!globals.gamePause) {
 
-                processTank(timeDiff);
-                processInvaders(timeDiff);
-                processProjectile(timeDiff);
-
-            }
-
+            processTank(timeDiff);
+            processInvaders(timeDiff);
+            processProjectile(timeDiff);
 
         }
+
+
+    };
 
     var globalScale = 1.0;
 
@@ -1589,7 +1580,8 @@ define('game', ['sounds', 'speech', 'drawShapes', 'globals'], function(sounds, s
         globals.stage = new Kinetic.Stage({
             container: _mainStage,
             width: globals.stageWidth,
-            height: globals.stageHeight
+            height: globals.stageHeight,
+            listening:false
         });
 
         resizeStage();

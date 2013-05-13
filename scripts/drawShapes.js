@@ -166,14 +166,7 @@ define(['globals', 'speech'], function(globals, speech) {
 
         },
 
-        projectileDraw: function(canvas) {
-            var context = canvas.getContext();
-
-            var radius = 5;
-
-            drawShapes.circle(context, radius, this.fillStyle, this.strokeStyle, 1);
-
-        },
+        
         circle: function(context, r, fillStyle, strokeStyle, lineWidth, offSetPos) {
             if (typeof(lineWidth) === "undefined") lineWidth = 1;
             if (typeof(offSetPos) === "undefined") offSetPos = {
@@ -240,8 +233,6 @@ define(['globals', 'speech'], function(globals, speech) {
                 "x": eye.x,
                 "y": eye.y
             });
-
-
 
         },
         tentacle: function(canvas) {
