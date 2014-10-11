@@ -532,7 +532,7 @@ define('sounds',['globals'],function(globals) {
 
 
             var panner = _export.audioCtx.createPanner();
-            panner.panningModel = webkitAudioPannerNode.EQUALPOWER;
+            panner.panningModel =  "equalpower";
             panner.refDistance = globals.fixedStageDims.width / 8;
             panner.maxDistance = globals.fixedStageDims.width / 2;
             panner.rolloffFactor = 0.4;
@@ -545,8 +545,8 @@ define('sounds',['globals'],function(globals) {
 
 
             var grainWindowNode;
-            grainWindowNode = _export.audioCtx.createGainNode();
-            var invaderVolNode = _export.audioCtx.createGainNode();
+            grainWindowNode = _export.audioCtx.createGain();
+            var invaderVolNode = _export.audioCtx.createGain();
             invaderVolNode.gain.value = invaderVol;
             source.connect(grainWindowNode);
             grainWindowNode.connect(invaderVolNode);
@@ -557,7 +557,7 @@ define('sounds',['globals'],function(globals) {
             var randomGrainOffset = (Math.random() - 0.5) * 2.0 * (invaderDroneBuffer.duration);
 
             // Schedule sound grain
-            source.noteGrainOn(_export.realTime, grainTime + randomGrainOffset, grainDuration);
+            source.start(_export.realTime, grainTime + randomGrainOffset, grainDuration);
 
             // Schedule the grain window.
             // This applies a time-varying gain change for smooth fade-in / fade-out.
@@ -613,7 +613,7 @@ define('sounds',['globals'],function(globals) {
                 invaderDroneBuffer.getChannelData(0).set(invaderSweepBuffer);
 
 
-                mainVol = audioCtx.createGainNode();
+                mainVol = audioCtx.createGain();
                 // Connect MainVol to final destination
                 mainVol.connect(audioCtx.destination);
                 mainVol.gain.value = 0.5;
@@ -644,7 +644,7 @@ define('sounds',['globals'],function(globals) {
                 var panner = _export.audioCtx.createPanner();
 
 
-                panner.panningModel = webkitAudioPannerNode.EQUALPOWER;
+                panner.panningModel = "equalpower";
                 panner.refDistance = 200;
                 panner.maxDistance = 400;
                 panner.setPosition((globals.tank.pos.x - globals.fixedStageDims.width / 2), 0, 100);
@@ -658,14 +658,14 @@ define('sounds',['globals'],function(globals) {
                 cannonSource.connect(lpFilter);
 
 
-                var boostVol = _export.audioCtx.createGainNode();
+                var boostVol = _export.audioCtx.createGain();
                 boostVol.gain.value = 5.0;
 
                 lpFilter.connect(panner);
                 panner.connect(boostVol);
                 boostVol.connect(compressor);
 
-                cannonSource.noteOn(0);
+                cannonSource.start(0);
 
             }
         }
